@@ -60,7 +60,7 @@ buildClassMap n = foldr addWord M.empty . preprocessWords
         Nothing  -> cmap
         Just set -> M.alter (appendWord word) set cmap
     appendWord :: String -> Maybe [String] -> Maybe [String]
-    appendWord word Nothing      = Just [word]
+    appendWord word Nothing   = Just [word]
     appendWord word (Just ws) = Just $ word : ws
 
 classMapWordCount :: ClassMap -> Int
@@ -69,8 +69,8 @@ classMapWordCount = sum . M.map length
 {- Basic guessing operations -}
 
 data GuessState = GuessState
-  { guessed       :: [Guess]
-  , allWords      :: ClassMap
+  { guessed  :: [Guess]
+  , allWords :: ClassMap
   } deriving (Show)
 
 score :: Class -> Class -> Int
@@ -100,7 +100,7 @@ guessState :: ClassMap -> GuessState
 guessState cmap = GuessState{guessed=[], allWords=cmap}
 
 addGuess :: Guess -> GuessState -> GuessState
-addGuess guess g = g{guessed=guess : (guessed g)}
+addGuess guess g = g{guessed=guess : guessed g}
 
 removeGuess :: String -> GuessState -> GuessState
 removeGuess w g =
@@ -158,7 +158,7 @@ worstCase c cmap =
 nextGuesses :: GuessState -> [(Int, [String])]
 nextGuesses g =
   let pwords = possibleWords g
-      lpwords = M.map length $ pwords
+      lpwords = M.map length pwords
       pclasses = M.keysSet pwords
       options1 = M.assocs $ allWords g
       options2 = parMap rdeepseq (\(set, w) -> (set, worstCase set lpwords, w)) options1

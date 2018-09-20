@@ -1,8 +1,8 @@
 module Main where
 
 import           Control.Monad
-import           Data.List
 import           Data.Char
+import           Data.List
 import           System.Environment
 import           System.Exit
 
