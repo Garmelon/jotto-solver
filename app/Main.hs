@@ -140,11 +140,11 @@ loop = do
 runLoop :: GuessState -> IO GuessState
 runLoop = execStateT (H.runInputT H.defaultSettings loop)
 
-loadAndRun :: [FilePath] -> IO ()
-loadAndRun files = do
+loadAndRun :: Int -> [FilePath] -> IO ()
+loadAndRun n files = do
   wordlists <- mapM readFile files
   let wordlist = concatMap lines wordlists
-      cmap = buildClassMap (Just 5) wordlist
+      cmap = buildClassMap (Just n) wordlist
       g = guessState cmap
 
   let wordCount = numberjust $ show $ length wordlist
@@ -179,13 +179,19 @@ loadAndRun file = do
   --  - quit -> quit the program (alias: q)
 -}
 
+wrongArgs :: IO ()
+wrongArgs = do
+  name <- getProgName
+  putStrLn "  USAGE:"
+  putStrLn $ name ++ " <word length> <dictionary files>"
+  die "Error: No word length or dictionary given."
+
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    [] -> do
-      name <- getProgName
-      putStrLn "  USAGE:"
-      putStrLn $ name ++ " <dictionary>"
-      die "Error: No dictionary given."
-    files -> loadAndRun files
+    [] -> wrongArgs
+    [_] -> wrongArgs
+    (n:files) -> case readMaybe n of
+      Nothing     -> wrongArgs
+      Just number -> loadAndRun number files
