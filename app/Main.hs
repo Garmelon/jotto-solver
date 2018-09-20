@@ -97,10 +97,19 @@ cmdStats = do
 cmdWhat :: Console ()
 cmdWhat = do
   g <- lift get
-  let next = nextGuesses g
-      showWords = intercalate ", "
-      showNextGuess (score, w) = numberjust (show score) ++ ": " ++ showWords w
-  mapM_ (H.outputStrLn . showNextGuess) next
+  let showWords = intercalate ", "
+  case possible g of
+    [ws] -> do
+      let guesswords = map (\(Guess w _) -> w) $ filter (\(Guess w n) -> n == length w) $ guesses g
+          possibleWords = ws \\ guesswords
+      H.outputStrLn "The word is one of the following words:"
+      H.outputStrLn $ "  " ++ showWords possibleWords
+      H.outputStrLn "These words were already guessed:"
+      H.outputStrLn $ "  " ++ showWords guesswords
+    _ -> do
+      let next = nextGuesses g
+          showNextGuess (score, w) = numberjust (show score) ++ ": " ++ showWords w
+      mapM_ (H.outputStrLn . showNextGuess) next
   H.outputStrLn ""
 
 loop :: Console ()
