@@ -151,7 +151,7 @@ worstCase :: Class -> M.Map Class Int -> Int
 worstCase c cmap =
   let solutions = M.mapKeysWith (+) (score c) cmap
       maxHitCount = maximum solutions
-      minEliminated = M.size cmap - maxHitCount
+      minEliminated = sum cmap - maxHitCount
   in  minEliminated
 
 nextGuesses :: GuessState -> [(Int, [String])]
