@@ -150,9 +150,7 @@ wordsLeft = classMapWordCount . possibleWords
 worstCase :: Class -> M.Map Class Int -> Int
 worstCase c cmap =
   let solutions = M.mapKeysWith (+) (score c) cmap
-      zeroes = M.fromList $ zip [1..S.size c] (repeat 0)
-      solutionsWithZeroes = M.union solutions zeroes
-      maxHitCount = maximum solutionsWithZeroes
+      maxHitCount = maximum solutions
       minEliminated = M.size cmap - maxHitCount
   in  minEliminated
 
