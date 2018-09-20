@@ -21,11 +21,12 @@ module Jotto
   , nextGuesses
   ) where
 
-import           Data.List
 import           Data.Char
+import           Data.List
 
-import qualified Data.Map  as M
-import qualified Data.Set  as S
+import           Control.Parallel.Strategies
+import qualified Data.Map                    as M
+import qualified Data.Set                    as S
 
 data Guess = Guess String Int
   deriving (Show)
@@ -160,7 +161,7 @@ nextGuesses g =
       lpwords = M.map length $ pwords
       pclasses = M.keysSet pwords
       options1 = M.assocs $ allWords g
-      options2 = map (\(set, w) -> (set, worstCase set lpwords, w)) options1
+      options2 = parMap rdeepseq (\(set, w) -> (set, worstCase set lpwords, w)) options1
       options3 = sortOn (\(_,_,w) -> length w) options2
       options4 = sortOn (\(s,_,_) -> S.member s pclasses) options3
       options5 = sortOn (\(_,c,_) -> c) options4
