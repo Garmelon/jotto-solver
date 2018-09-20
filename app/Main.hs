@@ -33,7 +33,7 @@ cmdHelp = do
   H.outputStrLn "possible              - show all words not yet ruled out (alias: p)"
   H.outputStrLn "reset                 - reset solve state                (alias: r)"
   H.outputStrLn "status                - show current solve state         (alias: s)"
-  H.outputStrLn "what                  - what words to guess next          (alias: w)"
+  H.outputStrLn "what                  - what words to guess next         (alias: w)"
   H.outputStrLn ""
 
 readMaybe :: Read a => String -> Maybe a
