@@ -40,23 +40,23 @@ alphabet = S.fromList ['a'..'z']
 
 {- Loading words -}
 
-toClass :: Maybe Int -> String -> Maybe Class
-toClass Nothing  word = Just $ S.fromList word
-toClass (Just n) word =
+toClass :: Int -> Int -> String -> Maybe Class
+--toClass Nothing  word = Just $ S.fromList word
+toClass a b word =
   let set = S.intersection (S.fromList word) alphabet
-  in  if length word == n && S.size set == n
+  in  if length word == S.size set && length word >= a && length word <= b
         then Just set
         else Nothing
 
 preprocessWords :: [String] -> [String]
 preprocessWords = map head . group . sort . map (map toLower)
 
-buildClassMap :: Maybe Int -> [String] -> ClassMap
-buildClassMap n = foldr addWord M.empty . preprocessWords
+buildClassMap :: Int -> Int -> [String] -> ClassMap
+buildClassMap a b = foldr addWord M.empty . preprocessWords
   where
     addWord :: String -> ClassMap -> ClassMap
     addWord word cmap =
-      case toClass n word of
+      case toClass a b word of
         Nothing  -> cmap
         Just set -> M.alter (appendWord word) set cmap
     appendWord :: String -> Maybe [String] -> Maybe [String]

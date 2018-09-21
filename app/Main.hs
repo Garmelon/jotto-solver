@@ -8,6 +8,7 @@ import           System.Exit
 
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.State.Strict
+import qualified Data.Set                         as S
 import qualified Data.Text                        as T
 import qualified System.Console.Haskeline         as H
 
@@ -99,14 +100,18 @@ cmdWhat = do
   g <- lift get
   let showWords = intercalate ", "
   case possible g of
-    [ws] -> do
-      let guesswords = map (\(Guess w _) -> w) $ filter (\(Guess w n) -> n == length w) $ guesses g
-          possibleWords = ws \\ guesswords
-      H.outputStrLn "The word is one of the following words:"
-      H.outputStrLn $ "  " ++ showWords possibleWords
-      H.outputStrLn "These words were already guessed:"
-      H.outputStrLn $ "  " ++ showWords guesswords
-    _ -> do
+    []         -> H.outputStrLn "No words are possible."
+    [wordlist] -> do
+      case wordlist of
+        []       -> H.outputStrLn "No words are possible."
+        ws@(w:_) -> do
+          let guesswords = filter (\a -> S.fromList a == S.fromList w) $ map (\(Guess x _) -> x) $ guesses g
+              possiblewords = ws \\ guesswords
+          H.outputStrLn "The word is one of the following words:"
+          H.outputStrLn $ "  " ++ showWords possiblewords
+          H.outputStrLn "These words were already guessed:"
+          H.outputStrLn $ "  " ++ showWords guesswords
+    _          -> do
       let next = nextGuesses g
           showNextGuess (score, w) = numberjust (show score) ++ ": " ++ showWords w
       mapM_ (H.outputStrLn . showNextGuess) next
@@ -140,11 +145,11 @@ loop = do
 runLoop :: GuessState -> IO GuessState
 runLoop = execStateT (H.runInputT H.defaultSettings loop)
 
-loadAndRun :: Int -> [FilePath] -> IO ()
-loadAndRun n files = do
+loadAndRun :: Int -> Int -> [FilePath] -> IO ()
+loadAndRun a b files = do
   wordlists <- mapM readFile files
   let wordlist = concatMap lines wordlists
-      cmap = buildClassMap (Just n) wordlist
+      cmap = buildClassMap a b wordlist
       g = guessState cmap
 
   let wordCount = numberjust $ show $ length wordlist
@@ -183,8 +188,8 @@ wrongArgs :: IO ()
 wrongArgs = do
   name <- getProgName
   putStrLn "  USAGE:"
-  putStrLn $ name ++ " <word length> <dictionary files>"
-  die "Error: No word length or dictionary given."
+  putStrLn $ name ++ " <min word length> [<max word length>] <dictionary files>"
+  die "Error: Incorrect arguments"
 
 main :: IO ()
 main = do
@@ -192,6 +197,8 @@ main = do
   case args of
     [] -> wrongArgs
     [_] -> wrongArgs
-    (n:files) -> case readMaybe n of
-      Nothing     -> wrongArgs
-      Just number -> loadAndRun number files
+    (a:b:files) ->
+      case (readMaybe a, readMaybe b) of
+        (Just na, Just nb) -> loadAndRun (min na nb) (max na nb) files
+        (Just na, Nothing) -> loadAndRun na na (b:files)
+        _                  -> wrongArgs
